@@ -26,7 +26,7 @@ void setup(void)
                                              window_width,
                                              window_height);
 
-    load_obj_file_data("./f22.obj");
+    load_obj_file_data("./assets/f22.obj");
 }
 
 void process_input(void)

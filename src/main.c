@@ -10,7 +10,7 @@
 
 triangle_t *triangles_to_render = NULL;
 
-vec3_t camera_position = {.x = 0, .y = 0, .z = -5};
+vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 
 float fov_factor = 640;
 
@@ -82,17 +82,32 @@ void update(void)
         face_vertices[0] = mesh.vertices[face_mesh.a - 1];
         face_vertices[1] = mesh.vertices[face_mesh.b - 1];
         face_vertices[2] = mesh.vertices[face_mesh.c - 1];
+
         triangle_t projected_triangle;
 
+        vec3_t transformed_vertices[3];
+
+        // 3 for all the vertices of the current face
         for (int j = 0; j < 3; j++)
         {
             vec3_t transformed_vertex = vec3_rotate_x(face_vertices[j], mesh.rotation.x);
             transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
             transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
-            transformed_vertex.z -= camera_position.z;
+            transformed_vertex.z += 5;
 
-            vec2_t projected_point = project(transformed_vertex);
+            transformed_vertices[j] = transformed_vertex;
+        }
+
+        // back face culling (display the face or not)
+        if (!should_render_face(transformed_vertices, camera_position))
+        {
+            continue;
+        }
+
+        for (int j = 0; j < 3; j++)
+        {
+            vec2_t projected_point = project(transformed_vertices[j]);
             projected_point.x += (window_width / 2);
             projected_point.y += (window_height / 2);
 

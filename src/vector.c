@@ -1,5 +1,4 @@
 #include "vector.h"
-#include "math.h"
 
 // V2
 
@@ -47,6 +46,14 @@ vec2_t vec2_div(vec2_t v, float factor)
 float vec2_dot(vec2_t a, vec2_t b)
 {
     return (a.x * b.x) + (a.y * b.y);
+}
+
+void vec2_normalize(vec2_t *v)
+{
+    float length = vec2_length(*v);
+
+    v->x /= length;
+    v->y /= length;
 }
 
 // V3
@@ -113,6 +120,7 @@ float vec3_dot(vec3_t a, vec3_t b)
 
 bool should_render_face(vec3_t vertices[], vec3_t camera_position)
 {
+    // get ABC in clockwise order
     vec3_t vertex_a = vertices[0];
     vec3_t vertex_b = vertices[1];
     vec3_t vertex_c = vertices[2];
@@ -120,13 +128,26 @@ bool should_render_face(vec3_t vertices[], vec3_t camera_position)
     vec3_t vector_ba = vec3_sub(vertex_b, vertex_a);
     vec3_t vector_ca = vec3_sub(vertex_c, vertex_a);
 
+    vec3_normalize(&vector_ba);
+    vec3_normalize(&vector_ca);
+
     vec3_t normal = vec3_cross(vector_ba, vector_ca);
+    vec3_normalize(&normal);
 
     vec3_t camera_ray = vec3_sub(camera_position, vertex_a);
 
     float dot_product = vec3_dot(camera_ray, normal);
 
     return dot_product >= 0;
+}
+
+void vec3_normalize(vec3_t *v)
+{
+    float length = vec3_length(*v);
+
+    v->x /= length;
+    v->y /= length;
+    v->z /= length;
 }
 
 vec3_t vec3_rotate_x(vec3_t initial_vector, float angle)

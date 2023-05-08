@@ -1,7 +1,4 @@
 #include "mesh.h"
-#include "array.h"
-#include <stdlib.h>
-#include <string.h>
 
 vec3_t cube_vertices[N_CUBE_VERTICES] = {
     {.x = -1, .y = -1, .z = -1}, // 1

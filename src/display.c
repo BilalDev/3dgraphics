@@ -86,7 +86,7 @@ void draw_line(int x0, int y0, int x1, int y1, uint32_t color)
     int dx = x1 - x0;
     int dy = y1 - y0;
 
-    int side_length = abs(dx) >= abs(dy) ? abs(dx) : abs(dy);
+    int side_length = (abs(dx) >= abs(dy)) ? abs(dx) : abs(dy);
 
     float x_inc = dx / (float)side_length;
     float y_inc = dy / (float)side_length;

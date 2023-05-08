@@ -2,6 +2,7 @@
 #define VECTOR_H
 
 #include <stdbool.h>
+#include "math.h"
 
 typedef struct
 {
@@ -23,6 +24,7 @@ vec2_t vec2_sub(vec2_t a, vec2_t b);
 vec2_t vec2_mul(vec2_t v, float factor);
 vec2_t vec2_div(vec2_t v, float factor);
 float vec2_dot(vec2_t a, vec2_t b);
+void vec2_normalize(vec2_t *v);
 
 float vec3_length(vec3_t v);
 vec3_t vec3_add(vec3_t a, vec3_t b);
@@ -33,9 +35,13 @@ vec3_t vec3_div(vec3_t v, float factor);
 vec3_t vec3_cross(vec3_t a, vec3_t b);
 // dot product is commutative
 float vec3_dot(vec3_t a, vec3_t b);
+// not everything is meant to be normalized
+// ask yourself if you only need the direction of a vector
+// if so, then you should normalize
+void vec3_normalize(vec3_t *v);
 
 /*
- * Algo is as follow:
+ * algo is as follow:
  * - find B-A and C-A
  * - find the normal N by getting the cross product
  * - find the camera ray (vector of the camera position and A)

@@ -53,11 +53,11 @@ void load_cube_mesh_data(void)
 void load_obj_file_data(char *filename)
 {
     FILE *file = fopen(filename, "r");
-    char current_line[100];
+    char current_line[1024];
 
     if (file != NULL)
     {
-        while (fgets(current_line, 100, file))
+        while (fgets(current_line, 1024, file))
         {
             if (strncmp(current_line, "v ", 2) == 0)
             {

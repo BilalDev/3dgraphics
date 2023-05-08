@@ -15,7 +15,7 @@ vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 float fov_factor = 640;
 
 bool is_running = false;
-int previous_frame_time;
+int previous_frame_time = 0;
 
 void setup(void)
 {
@@ -28,7 +28,6 @@ void setup(void)
 
     // load_cube_mesh_data();
     load_obj_file_data("./cube.obj");
-    mesh.rotation.x = 10;
 }
 
 void process_input(void)
@@ -70,7 +69,9 @@ void update(void)
 
     previous_frame_time = SDL_GetTicks();
 
+    mesh.rotation.x += 0.01;
     mesh.rotation.y += 0.01;
+    mesh.rotation.z += 0.01;
 
     int num_faces = array_length(mesh.faces);
 
@@ -82,8 +83,6 @@ void update(void)
         face_vertices[0] = mesh.vertices[face_mesh.a - 1];
         face_vertices[1] = mesh.vertices[face_mesh.b - 1];
         face_vertices[2] = mesh.vertices[face_mesh.c - 1];
-
-        triangle_t projected_triangle;
 
         vec3_t transformed_vertices[3];
 
@@ -100,10 +99,12 @@ void update(void)
         }
 
         // back face culling (display the face or not)
-        if (!should_render_face(transformed_vertices, camera_position))
-        {
-            continue;
-        }
+        // if (!should_render_face(transformed_vertices, camera_position))
+        // {
+        //     continue;
+        // }
+
+        triangle_t projected_triangle;
 
         for (int j = 0; j < 3; j++)
         {
@@ -148,13 +149,13 @@ void render(void)
                       0xFF2DFCAD);
     }
 
+    array_free(triangles_to_render);
+
     render_color_buffer();
 
     clear_color_buffer(0xFF000000);
 
     SDL_RenderPresent(renderer);
-
-    array_free(triangles_to_render);
 }
 
 void free_resources(void)
@@ -177,9 +178,8 @@ int main()
         render();
     }
 
-    free_resources();
-
     destroy_window();
+    free_resources();
 
     return 0;
 }

@@ -26,8 +26,7 @@ void setup(void)
                                              window_width,
                                              window_height);
 
-    // load_cube_mesh_data();
-    load_obj_file_data("./cube.obj");
+    load_obj_file_data("./suzanne.obj");
 }
 
 void process_input(void)
@@ -99,10 +98,10 @@ void update(void)
         }
 
         // back face culling (display the face or not)
-        // if (!should_render_face(transformed_vertices, camera_position))
-        // {
-        //     continue;
-        // }
+        if (!should_render_face(transformed_vertices, camera_position))
+        {
+            continue;
+        }
 
         triangle_t projected_triangle;
 
@@ -132,13 +131,13 @@ void render(void)
         // draw_rect(triangle.points[0].x, triangle.points[0].y, 4, 4, 0xFF00FF00);
         // draw_rect(triangle.points[1].x, triangle.points[1].y, 4, 4, 0xFF00FF00);
         // draw_rect(triangle.points[2].x, triangle.points[2].y, 4, 4, 0xFF00FF00);
-        // draw_filled_triangle(triangle.points[0].x,
-        //               triangle.points[0].y,
-        //               triangle.points[1].x,
-        //               triangle.points[1].y,
-        //               triangle.points[2].x,
-        //               triangle.points[2].y,
-        //               0xFFB01E00);
+        draw_filled_triangle(triangle.points[0].x,
+                      triangle.points[0].y,
+                      triangle.points[1].x,
+                      triangle.points[1].y,
+                      triangle.points[2].x,
+                      triangle.points[2].y,
+                      0xFFB01E00);
 
         draw_triangle(triangle.points[0].x,
                       triangle.points[0].y,

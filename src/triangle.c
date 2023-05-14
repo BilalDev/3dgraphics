@@ -106,3 +106,26 @@ void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32
         fill_flat_top_triangle(x1, y1, mx, my, x2, y2, color);
     }
 }
+
+void swap(triangle_t *a, triangle_t *b)
+{
+    triangle_t temp = *a;
+
+    *a = *b;
+    *b = temp;
+}
+
+void bubblesort(triangle_t *triangles)
+{
+    int number_of_values = array_length(triangles);
+    for (int i = 0; i < number_of_values; i++)
+    {
+        for (int j = i; j < number_of_values; j++)
+        {
+            if (triangles[i].avg_depth < triangles[j].avg_depth)
+            {
+                swap(&triangles[i], &triangles[j]);
+            }
+        }
+    }
+}

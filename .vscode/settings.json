@@ -7,5 +7,6 @@
         "stdio.h": "c",
         "vector.h": "c",
         "triangle.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

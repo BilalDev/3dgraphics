@@ -29,7 +29,7 @@ void setup(void)
                                              window_width,
                                              window_height);
 
-    // load_obj_file_data("./assets/cube.obj");
+    // load_obj_file_data("./assets/f22.obj");
     load_cube_mesh_data();
 }
 
@@ -138,16 +138,22 @@ void update(void)
             projected_points[j].x += (window_width / 2);
             projected_points[j].y += (window_height / 2);
         }
+
+        float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0;
+
         triangle_t projected_triangle = {
             .points = {
                 {projected_points[0].x, projected_points[0].y},
                 {projected_points[1].x, projected_points[1].y},
                 {projected_points[2].x, projected_points[2].y},
             },
-            .color = face_mesh.color};
+            .color = face_mesh.color,
+            .avg_depth = avg_depth};
 
         array_push(triangles_to_render, projected_triangle);
     }
+
+    bubblesort(triangles_to_render);
 }
 
 void render(void)

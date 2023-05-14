@@ -35,7 +35,9 @@ face_t cube_faces[N_CUBE_FACES] = {
 mesh_t mesh = {
     .vertices = NULL,
     .faces = NULL,
-    .rotation = {.x = 0, .y = 0, .z = 0}};
+    .rotation = {.x = 0, .y = 0, .z = 0},
+    .scale = {.x = 1.0, .y = 1.0, .z = 1.0},
+    .translation = {.x = 0, .y = 0, .z = 0}};
 
 void load_cube_mesh_data(void)
 {

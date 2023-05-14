@@ -118,12 +118,12 @@ float vec3_dot(vec3_t a, vec3_t b)
     return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
 }
 
-bool should_render_face(vec3_t vertices[], vec3_t camera_position)
+bool should_render_face(vec4_t vertices[], vec3_t camera_position)
 {
     // get ABC in clockwise order
-    vec3_t vertex_a = vertices[0];
-    vec3_t vertex_b = vertices[1];
-    vec3_t vertex_c = vertices[2];
+    vec3_t vertex_a = vec3_from_vec4(vertices[0]);
+    vec3_t vertex_b = vec3_from_vec4(vertices[1]);
+    vec3_t vertex_c = vec3_from_vec4(vertices[2]);
 
     vec3_t vector_ba = vec3_sub(vertex_b, vertex_a);
     vec3_t vector_ca = vec3_sub(vertex_c, vertex_a);
@@ -178,4 +178,18 @@ vec3_t vec3_rotate_z(vec3_t initial_vector, float angle)
         .z = initial_vector.z};
 
     return rotated_vector;
+}
+
+vec4_t vec4_from_vec3(vec3_t v)
+{
+    vec4_t result = {v.x, v.y, v.z, 1};
+
+    return result;
+}
+
+vec3_t vec3_from_vec4(vec4_t v)
+{
+    vec3_t result = {v.x, v.y, v.z};
+
+    return result;
 }

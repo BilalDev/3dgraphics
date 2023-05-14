@@ -7,6 +7,7 @@
 #include "mesh.h"
 #include "triangle.h"
 #include "array.h"
+#include "matrix.h"
 
 triangle_t *triangles_to_render = NULL;
 
@@ -99,6 +100,10 @@ void update(void)
     mesh.rotation.x += 0.01;
     mesh.rotation.y += 0.01;
     mesh.rotation.z += 0.01;
+    mesh.scale.x += 0.002;
+    mesh.scale.y += 0.001;
+
+    mat4_t scale_matrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
 
     int num_faces = array_length(mesh.faces);
 
@@ -111,14 +116,13 @@ void update(void)
         face_vertices[1] = mesh.vertices[face_mesh.b - 1];
         face_vertices[2] = mesh.vertices[face_mesh.c - 1];
 
-        vec3_t transformed_vertices[3];
+        vec4_t transformed_vertices[3];
 
         // 3 for all the vertices of the current face
         for (int j = 0; j < 3; j++)
         {
-            vec3_t transformed_vertex = vec3_rotate_x(face_vertices[j], mesh.rotation.x);
-            transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
-            transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+            vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
+            transformed_vertex = mat4_mul_vec4(scale_matrix, transformed_vertex);
 
             transformed_vertex.z += 5;
 
@@ -134,7 +138,7 @@ void update(void)
         vec2_t projected_points[3];
         for (int j = 0; j < 3; j++)
         {
-            projected_points[j] = project(transformed_vertices[j]);
+            projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]));
             projected_points[j].x += (window_width / 2);
             projected_points[j].y += (window_height / 2);
         }

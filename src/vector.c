@@ -118,29 +118,6 @@ float vec3_dot(vec3_t a, vec3_t b)
     return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
 }
 
-bool should_render_face(vec4_t vertices[], vec3_t camera_position)
-{
-    // get ABC in clockwise order
-    vec3_t vertex_a = vec3_from_vec4(vertices[0]);
-    vec3_t vertex_b = vec3_from_vec4(vertices[1]);
-    vec3_t vertex_c = vec3_from_vec4(vertices[2]);
-
-    vec3_t vector_ba = vec3_sub(vertex_b, vertex_a);
-    vec3_t vector_ca = vec3_sub(vertex_c, vertex_a);
-
-    vec3_normalize(&vector_ba);
-    vec3_normalize(&vector_ca);
-
-    vec3_t normal = vec3_cross(vector_ba, vector_ca);
-    vec3_normalize(&normal);
-
-    vec3_t camera_ray = vec3_sub(camera_position, vertex_a);
-
-    float dot_product = vec3_dot(camera_ray, normal);
-
-    return dot_product >= 0;
-}
-
 void vec3_normalize(vec3_t *v)
 {
     float length = vec3_length(*v);

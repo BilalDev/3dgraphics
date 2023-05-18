@@ -8,12 +8,14 @@
 #include "triangle.h"
 #include "array.h"
 #include "matrix.h"
+#include "light.h"
 
 triangle_t *triangles_to_render = NULL;
 
 vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 
 mat4_t projection_matrix;
+light_t directional_light;
 
 bool is_running = false;
 int previous_frame_time = 0;
@@ -34,6 +36,9 @@ void setup(void)
     float fov = M_PI / 3; // 180 / 3, 60deg
     float aspect = (float)window_height / (float)window_width;
     projection_matrix = mat4_make_perspective(fov, aspect, 0.1, 100.0);
+
+    vec3_t direction = {0, 0, 1};
+    directional_light.direction = direction;
 
     load_obj_file_data("./assets/f22.obj");
     // load_cube_mesh_data();
@@ -139,8 +144,34 @@ void update(void)
             transformed_vertices[j] = transformed_vertex;
         }
 
+        /*
+         * algo is as follow:
+         * - find B-A and C-A
+         * - find the normal N by getting the cross product
+         * - find the camera ray (vector of the camera position and A)
+         * - find the dot product between N and the camera ray
+         * - return true if greater than 0 (render face)
+         */
         // back face culling (display the face or not)
-        if (cull_method == CULL_BACKFACE && !should_render_face(transformed_vertices, camera_position))
+        // get ABC in clockwise order
+        vec3_t vertex_a = vec3_from_vec4(transformed_vertices[0]);
+        vec3_t vertex_b = vec3_from_vec4(transformed_vertices[1]);
+        vec3_t vertex_c = vec3_from_vec4(transformed_vertices[2]);
+
+        vec3_t vector_ba = vec3_sub(vertex_b, vertex_a);
+        vec3_t vector_ca = vec3_sub(vertex_c, vertex_a);
+
+        vec3_normalize(&vector_ba);
+        vec3_normalize(&vector_ca);
+
+        vec3_t normal = vec3_cross(vector_ba, vector_ca);
+        vec3_normalize(&normal);
+
+        vec3_t camera_ray = vec3_sub(camera_position, vertex_a);
+
+        float dot_product = vec3_dot(camera_ray, normal);
+
+        if (cull_method == CULL_BACKFACE && dot_product <= 0)
         {
             continue;
         }
@@ -156,10 +187,12 @@ void update(void)
             // translate the projected points to the middle of the screen
             projected_points[j].x += (window_width / 2.0);
             projected_points[j].y += (window_height / 2.0);
-
         }
 
         float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0;
+
+        float percentage_exposition = -vec3_dot(normal, directional_light.direction);
+        uint32_t new_color = light_apply_intensity(face_mesh.color, percentage_exposition);
 
         triangle_t projected_triangle = {
             .points = {
@@ -167,7 +200,7 @@ void update(void)
                 {projected_points[1].x, projected_points[1].y},
                 {projected_points[2].x, projected_points[2].y},
             },
-            .color = face_mesh.color,
+            .color = new_color,
             .avg_depth = avg_depth};
 
         array_push(triangles_to_render, projected_triangle);

@@ -6,7 +6,8 @@
         "sdl.h": "c",
         "stdio.h": "c",
         "vector.h": "c",
-        "triangle.h": "c"
+        "triangle.h": "c",
+        "light.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

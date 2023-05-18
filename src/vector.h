@@ -50,16 +50,6 @@ float vec3_dot(vec3_t a, vec3_t b);
 // if so, then you should normalize
 void vec3_normalize(vec3_t *v);
 
-/*
- * algo is as follow:
- * - find B-A and C-A
- * - find the normal N by getting the cross product
- * - find the camera ray (vector of the camera position and A)
- * - find the dot product between N and the camera ray
- * - return true if greater than 0 (render face)
- */
-bool should_render_face(vec4_t vertices[], vec3_t camera_position);
-
 vec3_t vec3_rotate_x(vec3_t initial_position, float angle);
 vec3_t vec3_rotate_y(vec3_t initial_position, float angle);
 vec3_t vec3_rotate_z(vec3_t initial_position, float angle);

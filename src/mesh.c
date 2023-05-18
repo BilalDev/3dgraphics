@@ -71,6 +71,7 @@ void load_obj_file_data(char *filename)
             if (strncmp(current_line, "f ", 2) == 0)
             {
                 face_t face;
+                face.color = 0x00FFFF00;
                 int trash;
 
                 sscanf(current_line, "f %d/%d/%d %d/%d/%d %d/%d/%d",

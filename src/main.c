@@ -13,7 +13,7 @@ triangle_t *triangles_to_render = NULL;
 
 vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 
-float fov_factor = 640;
+mat4_t projection_matrix;
 
 bool is_running = false;
 int previous_frame_time = 0;
@@ -29,6 +29,11 @@ void setup(void)
                                              SDL_TEXTUREACCESS_STREAMING,
                                              window_width,
                                              window_height);
+
+    //  initialize the perspective projection matrix
+    float fov = M_PI / 3; // 180 / 3, 60deg
+    float aspect = (float)window_height / (float)window_width;
+    projection_matrix = mat4_make_perspective(fov, aspect, 0.1, 100.0);
 
     load_obj_file_data("./assets/f22.obj");
     // load_cube_mesh_data();
@@ -75,16 +80,6 @@ void process_input(void)
     }
 }
 
-// Projection that receives a 3D vector and returns a projected 2D point
-vec2_t project(vec3_t point)
-{
-    vec2_t projected_point = {
-        .x = (fov_factor * point.x) / point.z,
-        .y = (fov_factor * point.y) / point.z};
-
-    return projected_point;
-}
-
 void update(void)
 {
     triangles_to_render = NULL;
@@ -98,13 +93,13 @@ void update(void)
     previous_frame_time = SDL_GetTicks();
 
     mesh.rotation.x += 0.05;
-    mesh.rotation.y += 0.05;
-    mesh.rotation.z += 0.05;
+    // mesh.rotation.y += 0.05;
+    // mesh.rotation.z += 0.05;
 
     // mesh.scale.x += 0.002;
     // mesh.scale.y += 0.001;
 
-    mesh.translation.x += 0.01;
+    // mesh.translation.x += 0.01;
     mesh.translation.z = 5;
 
     mat4_t scale_matrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
@@ -150,12 +145,18 @@ void update(void)
             continue;
         }
 
-        vec2_t projected_points[3];
+        vec4_t projected_points[3];
         for (int j = 0; j < 3; j++)
         {
-            projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]));
+            projected_points[j] = mat4_mul_vec4_project(projection_matrix, transformed_vertices[j]);
+            // scale into the view
+            projected_points[j].x *= (window_width / 2);
+            projected_points[j].y *= (window_height / 2);
+
+            // translate the projected points to the middle of the screen
             projected_points[j].x += (window_width / 2);
             projected_points[j].y += (window_height / 2);
+
         }
 
         float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0;

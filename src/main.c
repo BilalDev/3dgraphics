@@ -1,3 +1,8 @@
+// TODO:
+// implement smooth shading with Gouraud shading algorithm
+// implement smooth shading with Phong shading algorithm
+
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>

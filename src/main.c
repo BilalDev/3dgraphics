@@ -2,7 +2,6 @@
 // implement smooth shading with Gouraud shading algorithm
 // implement smooth shading with Phong shading algorithm
 
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -14,6 +13,7 @@
 #include "array.h"
 #include "matrix.h"
 #include "light.h"
+#include "texture.h"
 
 triangle_t *triangles_to_render = NULL;
 
@@ -45,8 +45,11 @@ void setup(void)
     vec3_t direction = {0, 0, 1};
     directional_light.direction = direction;
 
-    load_obj_file_data("./assets/f22.obj");
-    // load_cube_mesh_data();
+    // Manually load the hardcoded texture data from the static array
+    mesh_texture = (uint32_t *)REDBRICK_TEXTURE;
+
+    // load_obj_file_data("./assets/f22.obj");
+    load_cube_mesh_data();
 }
 
 void process_input(void)
@@ -77,6 +80,14 @@ void process_input(void)
         if (event.key.keysym.sym == SDLK_4)
         {
             render_method = RENDER_FILL_TRIANGLE_WIRE;
+        }
+        if (event.key.keysym.sym == SDLK_5)
+        {
+            render_method = RENDER_TEXTURED;
+        }
+        if (event.key.keysym.sym == SDLK_6)
+        {
+            render_method = RENDER_TEXTURED_WIRE;
         }
         if (event.key.keysym.sym == SDLK_c)
         {
@@ -189,6 +200,8 @@ void update(void)
             projected_points[j].x *= (window_width / 2.0);
             projected_points[j].y *= (window_height / 2.0);
 
+            projected_points[j].y *= -1;
+
             // translate the projected points to the middle of the screen
             projected_points[j].x += (window_width / 2.0);
             projected_points[j].y += (window_height / 2.0);
@@ -204,6 +217,11 @@ void update(void)
                 {projected_points[0].x, projected_points[0].y},
                 {projected_points[1].x, projected_points[1].y},
                 {projected_points[2].x, projected_points[2].y},
+            },
+            .texcoords = {
+                {face_mesh.a_uv.u, face_mesh.a_uv.v},
+                {face_mesh.b_uv.u, face_mesh.b_uv.v},
+                {face_mesh.c_uv.u, face_mesh.c_uv.v},
             },
             .color = new_color,
             .avg_depth = avg_depth};
@@ -242,7 +260,16 @@ void render(void)
                                  triangle.color);
         }
 
-        if (render_method == RENDER_FILL_TRIANGLE_WIRE || render_method == RENDER_WIRE || render_method == RENDER_WIRE_VERTEX)
+        // Draw textured triangle
+        if (render_method == RENDER_TEXTURED || render_method == RENDER_TEXTURED_WIRE)
+        {
+            draw_textured_triangle(triangle.points[0].x, triangle.points[0].y, triangle.texcoords[0].u, triangle.texcoords[0].v,
+                                   triangle.points[1].x, triangle.points[1].y, triangle.texcoords[1].u, triangle.texcoords[1].v,
+                                   triangle.points[2].x, triangle.points[2].y, triangle.texcoords[2].u, triangle.texcoords[2].v,
+                                   mesh_texture);
+        }
+
+        if (render_method == RENDER_FILL_TRIANGLE_WIRE || render_method == RENDER_WIRE || render_method == RENDER_WIRE_VERTEX || render_method == RENDER_TEXTURED_WIRE)
         {
             draw_triangle(triangle.points[0].x,
                           triangle.points[0].y,

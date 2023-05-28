@@ -165,6 +165,11 @@ void draw_textured_triangle(
         float_swap(&v0, &v1);
     }
 
+    // Create vector points after we sort the vertices
+    vec2_t point_a = {x0, y0};
+    vec2_t point_b = {x1, y1};
+    vec2_t point_c = {x2, y2};
+
     //////////////////////////////////////////////////////
     // Render the upper part of the triangle (flat-bottom)
     //////////////////////////////////////////////////////
@@ -190,7 +195,7 @@ void draw_textured_triangle(
 
             for (int x = x_start; x < x_end; x++)
             {
-                draw_pixel(x, y, 0xFFFF00FF);
+                draw_texel(x, y, texture, point_a, point_b, point_c, u0, v0, u1, v1, u2, v2);
             }
         }
     }
@@ -218,7 +223,7 @@ void draw_textured_triangle(
 
             for (int x = x_start; x < x_end; x++)
             {
-                draw_pixel(x, y, 0xFFFF0000);
+                draw_texel(x, y, texture, point_a, point_b, point_c, u0, v0, u1, v1, u2, v2);
             }
         }
     }

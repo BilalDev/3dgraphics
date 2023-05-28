@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "vector.h"
+
 typedef struct
 {
     float u;
@@ -14,7 +16,8 @@ extern int texture_width;
 extern int texture_height;
 
 extern const uint8_t REDBRICK_TEXTURE[];
-
 extern uint32_t* mesh_texture;
+
+vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p);
 
 #endif

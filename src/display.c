@@ -64,6 +64,29 @@ void draw_pixel(int x, int y, uint32_t color)
     }
 }
 
+void draw_texel(
+    int x, int y, uint32_t *texture,
+    vec2_t point_a, vec2_t point_b, vec2_t point_c,
+    float u0, float v0, float u1, float v1, float u2, float v2)
+{
+    vec2_t point_p = {x, y};
+    vec3_t weights = barycentric_weights(point_a, point_b, point_c, point_p);
+
+    float alpha = weights.x;
+    float beta = weights.y;
+    float gamma = weights.z;
+
+    // Perform the interpolation of all U and V values using barycentric weights
+    float interpolated_u = (u0 * alpha) + (u1 * beta) + (u2 * gamma);
+    float interpolated_v = (v0 * alpha) + (v1 * beta) + (v2 * gamma);
+
+    // Map the UV coordinate to the full texture width and height
+    int tex_x = abs((int)(interpolated_u * texture_width));
+    int tex_y = abs((int)(interpolated_v * texture_height));
+
+    draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
+}
+
 void draw_rect(int x, int y, int width, int height, uint32_t color)
 {
     for (int i = 0; i < width; i++)

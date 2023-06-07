@@ -41,8 +41,8 @@ void draw_grid(void);
 void draw_pixel(int x, int y, uint32_t color);
 void draw_texel(
     int x, int y, uint32_t *texture,
-    vec2_t point_a, vec2_t point_b, vec2_t point_c,
-    float u0, float v0, float u1, float v1, float u2, float v2);
+    vec4_t point_a, vec4_t point_b, vec4_t point_c,
+    tex2_t a_uv, tex2_t b_uv, tex2_t c_uv);
 void draw_rect(int x, int y, int width, int height, uint32_t color);
 void draw_line(int x0, int y0, int x1, int y1, uint32_t color);
 void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color);

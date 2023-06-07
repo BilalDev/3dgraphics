@@ -66,23 +66,35 @@ void draw_pixel(int x, int y, uint32_t color)
 
 void draw_texel(
     int x, int y, uint32_t *texture,
-    vec2_t point_a, vec2_t point_b, vec2_t point_c,
-    float u0, float v0, float u1, float v1, float u2, float v2)
+    vec4_t point_a, vec4_t point_b, vec4_t point_c,
+    tex2_t a_uv, tex2_t b_uv, tex2_t c_uv)
 {
-    vec2_t point_p = {x, y};
-    vec3_t weights = barycentric_weights(point_a, point_b, point_c, point_p);
+    vec2_t p = {x, y};
+    vec2_t a = vec2_from_vec4(point_a);
+    vec2_t b = vec2_from_vec4(point_b);
+    vec2_t c = vec2_from_vec4(point_c);
+
+    vec3_t weights = barycentric_weights(a, b, c, p);
 
     float alpha = weights.x;
     float beta = weights.y;
     float gamma = weights.z;
 
-    // Perform the interpolation of all U and V values using barycentric weights
-    float interpolated_u = (u0 * alpha) + (u1 * beta) + (u2 * gamma);
-    float interpolated_v = (v0 * alpha) + (v1 * beta) + (v2 * gamma);
+    float interpolated_u;
+    float interpolated_v;
+    float interpolated_reciprocal_w; // 1/w
+
+    // Perform the interpolation of all U/w and V/w values using barycentric weights
+    interpolated_u = (a_uv.u / point_a.w) * alpha + (b_uv.u / point_b.w) * beta + (c_uv.u / point_c.w) * gamma;
+    interpolated_v = (a_uv.v / point_a.w) * alpha + (b_uv.v / point_b.w) * beta + (c_uv.v / point_c.w) * gamma;
+    interpolated_reciprocal_w = (1 / point_a.w) * alpha + (1 / point_b.w) * beta + (1 / point_c.w) * gamma;
+
+    interpolated_u /= interpolated_reciprocal_w;
+    interpolated_v /= interpolated_reciprocal_w;
 
     // Map the UV coordinate to the full texture width and height
-    int tex_x = abs((int)(interpolated_u * texture_width));
-    int tex_y = abs((int)(interpolated_v * texture_height));
+    int tex_x = abs((int)(interpolated_u * texture_width)) % texture_width;
+    int tex_y = abs((int)(interpolated_v * texture_height)) % texture_height;
 
     draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
 }

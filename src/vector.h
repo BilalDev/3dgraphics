@@ -57,5 +57,6 @@ vec3_t vec3_rotate_z(vec3_t initial_position, float angle);
 // V4 conversions
 vec4_t vec4_from_vec3(vec3_t v);
 vec3_t vec3_from_vec4(vec4_t v);
+vec2_t vec2_from_vec4(vec4_t v);
 
 #endif

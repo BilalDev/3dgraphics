@@ -1,6 +1,7 @@
 // TODO:
 // implement smooth shading with Gouraud shading algorithm
 // implement smooth shading with Phong shading algorithm
+// check https://s3.amazonaws.com/thinkific/file_uploads/167815/attachments/c06/b72/f58/KokLimLow-PerspectiveCorrectInterpolation.pdf
 
 #include <stdio.h>
 #include <stdint.h>
@@ -14,6 +15,7 @@
 #include "matrix.h"
 #include "light.h"
 #include "texture.h"
+#include "upng.h"
 
 triangle_t *triangles_to_render = NULL;
 
@@ -32,7 +34,7 @@ void setup(void)
 
     color_buffer = (uint32_t *)malloc(sizeof(uint32_t) * window_width * window_height);
     color_buffer_texture = SDL_CreateTexture(renderer,
-                                             SDL_PIXELFORMAT_ARGB8888,
+                                             SDL_PIXELFORMAT_RGBA32,
                                              SDL_TEXTUREACCESS_STREAMING,
                                              window_width,
                                              window_height);
@@ -46,10 +48,10 @@ void setup(void)
     directional_light.direction = direction;
 
     // Manually load the hardcoded texture data from the static array
-    mesh_texture = (uint32_t *)REDBRICK_TEXTURE;
 
-    // load_obj_file_data("./assets/f22.obj");
-    load_cube_mesh_data();
+    load_obj_file_data("./assets/crab.obj");
+    load_png_texture_data("./assets/crab.png");
+    // load_cube_mesh_data();
 }
 
 void process_input(void)
@@ -113,8 +115,8 @@ void update(void)
 
     previous_frame_time = SDL_GetTicks();
 
-    mesh.rotation.x += 0.05;
-    // mesh.rotation.y += 0.05;
+    // mesh.rotation.x += 0.05;
+    mesh.rotation.y += 0.05;
     // mesh.rotation.z += 0.05;
 
     // mesh.scale.x += 0.002;
@@ -136,9 +138,9 @@ void update(void)
         face_t face_mesh = mesh.faces[i];
 
         vec3_t face_vertices[3];
-        face_vertices[0] = mesh.vertices[face_mesh.a - 1];
-        face_vertices[1] = mesh.vertices[face_mesh.b - 1];
-        face_vertices[2] = mesh.vertices[face_mesh.c - 1];
+        face_vertices[0] = mesh.vertices[face_mesh.a];
+        face_vertices[1] = mesh.vertices[face_mesh.b];
+        face_vertices[2] = mesh.vertices[face_mesh.c];
 
         vec4_t transformed_vertices[3];
 
@@ -214,9 +216,9 @@ void update(void)
 
         triangle_t projected_triangle = {
             .points = {
-                {projected_points[0].x, projected_points[0].y},
-                {projected_points[1].x, projected_points[1].y},
-                {projected_points[2].x, projected_points[2].y},
+                {projected_points[0].x, projected_points[0].y, projected_points[0].z, projected_points[0].w},
+                {projected_points[1].x, projected_points[1].y, projected_points[1].z, projected_points[1].w},
+                {projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w},
             },
             .texcoords = {
                 {face_mesh.a_uv.u, face_mesh.a_uv.v},
@@ -263,9 +265,9 @@ void render(void)
         // Draw textured triangle
         if (render_method == RENDER_TEXTURED || render_method == RENDER_TEXTURED_WIRE)
         {
-            draw_textured_triangle(triangle.points[0].x, triangle.points[0].y, triangle.texcoords[0].u, triangle.texcoords[0].v,
-                                   triangle.points[1].x, triangle.points[1].y, triangle.texcoords[1].u, triangle.texcoords[1].v,
-                                   triangle.points[2].x, triangle.points[2].y, triangle.texcoords[2].u, triangle.texcoords[2].v,
+            draw_textured_triangle(triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.texcoords[0].u, triangle.texcoords[0].v,
+                                   triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.texcoords[1].u, triangle.texcoords[1].v,
+                                   triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.texcoords[2].u, triangle.texcoords[2].v,
                                    mesh_texture);
         }
 
@@ -295,6 +297,7 @@ void free_resources(void)
     free(color_buffer);
     array_free(mesh.faces);
     array_free(mesh.vertices);
+    upng_free(png_texture);
 }
 
 int main()

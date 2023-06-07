@@ -135,9 +135,9 @@ void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32
 //
 ///////////////////////////////////////////////////////////////////////////////
 void draw_textured_triangle(
-    int x0, int y0, float u0, float v0,
-    int x1, int y1, float u1, float v1,
-    int x2, int y2, float u2, float v2,
+    int x0, int y0, float z0, float w0, float u0, float v0,
+    int x1, int y1, float z1, float w1, float u1, float v1,
+    int x2, int y2, float z2, float w2, float u2, float v2,
     uint32_t *texture)
 {
     // Loop all the pixels of the triangle to render them based on the color
@@ -147,6 +147,8 @@ void draw_textured_triangle(
     {
         int_swap(&y0, &y1);
         int_swap(&x0, &x1);
+        float_swap(&z0, &z1);
+        float_swap(&w0, &w1);
         float_swap(&u0, &u1);
         float_swap(&v0, &v1);
     }
@@ -154,6 +156,8 @@ void draw_textured_triangle(
     {
         int_swap(&y1, &y2);
         int_swap(&x1, &x2);
+        float_swap(&z1, &z2);
+        float_swap(&w1, &w2);
         float_swap(&u1, &u2);
         float_swap(&v1, &v2);
     }
@@ -161,14 +165,24 @@ void draw_textured_triangle(
     {
         int_swap(&y0, &y1);
         int_swap(&x0, &x1);
+        float_swap(&z0, &z1);
+        float_swap(&w0, &w1);
         float_swap(&u0, &u1);
         float_swap(&v0, &v1);
     }
 
+    // Flip the V component to account for inverted UV-coordinates (V grows downwards)
+    v0 = 1.0 - v0;
+    v1 = 1.0 - v1;
+    v2 = 1.0 - v2;
+
     // Create vector points after we sort the vertices
-    vec2_t point_a = {x0, y0};
-    vec2_t point_b = {x1, y1};
-    vec2_t point_c = {x2, y2};
+    vec4_t point_a = {x0, y0, z0, w0};
+    vec4_t point_b = {x1, y1, z1, w1};
+    vec4_t point_c = {x2, y2, z2, w2};
+    tex2_t a_uv = {u0, v0};
+    tex2_t b_uv = {u1, v1};
+    tex2_t c_uv = {u2, v2};
 
     //////////////////////////////////////////////////////
     // Render the upper part of the triangle (flat-bottom)
@@ -195,7 +209,7 @@ void draw_textured_triangle(
 
             for (int x = x_start; x < x_end; x++)
             {
-                draw_texel(x, y, texture, point_a, point_b, point_c, u0, v0, u1, v1, u2, v2);
+                draw_texel(x, y, texture, point_a, point_b, point_c, a_uv, b_uv, c_uv);
             }
         }
     }
@@ -223,7 +237,7 @@ void draw_textured_triangle(
 
             for (int x = x_start; x < x_end; x++)
             {
-                draw_texel(x, y, texture, point_a, point_b, point_c, u0, v0, u1, v1, u2, v2);
+                draw_texel(x, y, texture, point_a, point_b, point_c, a_uv, b_uv, c_uv);
             }
         }
     }

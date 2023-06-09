@@ -33,6 +33,8 @@ void setup(void)
     cull_method = CULL_BACKFACE;
 
     color_buffer = (uint32_t *)malloc(sizeof(uint32_t) * window_width * window_height);
+    z_buffer = (float *)malloc(sizeof(float) * window_width * window_height);
+
     color_buffer_texture = SDL_CreateTexture(renderer,
                                              SDL_PIXELFORMAT_RGBA32,
                                              SDL_TEXTUREACCESS_STREAMING,
@@ -289,12 +291,15 @@ void render(void)
 
     clear_color_buffer(0xFF000000);
 
+    clear_z_buffer();
+
     SDL_RenderPresent(renderer);
 }
 
 void free_resources(void)
 {
     free(color_buffer);
+    free(z_buffer);
     array_free(mesh.faces);
     array_free(mesh.vertices);
     upng_free(png_texture);

@@ -4,6 +4,7 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 // uint32_t instead of int to make sure it's a 32 bit integer
 uint32_t *color_buffer = NULL;
+float *z_buffer = NULL;
 SDL_Texture *color_buffer_texture = NULL;
 // here using int because we don't care about the size of int as it's only 800/600
 int window_width = 800;
@@ -87,6 +88,7 @@ void draw_texel(
     // Perform the interpolation of all U/w and V/w values using barycentric weights
     interpolated_u = (a_uv.u / point_a.w) * alpha + (b_uv.u / point_b.w) * beta + (c_uv.u / point_c.w) * gamma;
     interpolated_v = (a_uv.v / point_a.w) * alpha + (b_uv.v / point_b.w) * beta + (c_uv.v / point_c.w) * gamma;
+
     interpolated_reciprocal_w = (1 / point_a.w) * alpha + (1 / point_b.w) * beta + (1 / point_c.w) * gamma;
 
     interpolated_u /= interpolated_reciprocal_w;
@@ -96,7 +98,17 @@ void draw_texel(
     int tex_x = abs((int)(interpolated_u * texture_width)) % texture_width;
     int tex_y = abs((int)(interpolated_v * texture_height)) % texture_height;
 
-    draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
+    // Adjust 1/w so the pixels that are closer to the camera have smaller values
+    interpolated_reciprocal_w = 1.0 - interpolated_reciprocal_w;
+
+    // Only draw the pixel if the depth value is less than the one previously stored in the same z-buffer
+    if (interpolated_reciprocal_w < z_buffer[(window_width * y) + x])
+    {
+        draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
+
+        // Update the z-buffer value with the 1/w of this current pixel
+        z_buffer[(window_width * y) + x] = interpolated_reciprocal_w;
+    }
 }
 
 void draw_rect(int x, int y, int width, int height, uint32_t color)
@@ -165,6 +177,17 @@ void clear_color_buffer(uint32_t color)
         for (int x = 0; x < window_width; x++)
         {
             color_buffer[(window_width * y) + x] = color;
+        }
+    }
+}
+
+void clear_z_buffer(void)
+{
+    for (int y = 0; y < window_height; y++)
+    {
+        for (int x = 0; x < window_width; x++)
+        {
+            z_buffer[(window_width * y) + x] = 1.0;
         }
     }
 }

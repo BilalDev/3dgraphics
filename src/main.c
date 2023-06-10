@@ -17,7 +17,9 @@
 #include "texture.h"
 #include "upng.h"
 
-triangle_t *triangles_to_render = NULL;
+#define MAX_TRIANGLES_PER_MESH 10000
+triangle_t triangles_to_render[MAX_TRIANGLES_PER_MESH];
+int num_triangles_to_render = 0;
 
 vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 
@@ -51,8 +53,8 @@ void setup(void)
 
     // Manually load the hardcoded texture data from the static array
 
-    load_obj_file_data("./assets/crab.obj");
-    load_png_texture_data("./assets/crab.png");
+    load_obj_file_data("./assets/drone.obj");
+    load_png_texture_data("./assets/drone.png");
     // load_cube_mesh_data();
 }
 
@@ -107,7 +109,8 @@ void process_input(void)
 
 void update(void)
 {
-    triangles_to_render = NULL;
+    // Initialize the counter of triangles to render for the current frame
+    num_triangles_to_render = 0;
 
     int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
     if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME)
@@ -227,7 +230,10 @@ void update(void)
             },
             .color = new_color};
 
-        array_push(triangles_to_render, projected_triangle);
+        if (num_triangles_to_render < MAX_TRIANGLES_PER_MESH)
+        {
+            triangles_to_render[num_triangles_to_render++] = projected_triangle;
+        }
     }
 }
 
@@ -235,9 +241,7 @@ void render(void)
 {
     draw_grid();
 
-    int number_triangles = array_length(triangles_to_render);
-
-    for (int i = 0; i < number_triangles; i++)
+    for (int i = 0; i < num_triangles_to_render; i++)
     {
         triangle_t triangle = triangles_to_render[i];
 
@@ -285,8 +289,6 @@ void render(void)
                           0xFFCCCCCC);
         }
     }
-
-    array_free(triangles_to_render);
 
     render_color_buffer();
 

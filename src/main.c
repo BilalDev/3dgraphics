@@ -32,6 +32,7 @@ light_t directional_light;
 
 bool is_running = false;
 int previous_frame_time = 0;
+float delta_time = 0;
 
 void setup(void)
 {
@@ -122,19 +123,21 @@ void update(void)
         SDL_Delay(time_to_wait);
     }
 
+    // Get a delta time factor converted to seconds to be used to update our game objects
+    delta_time = (SDL_GetTicks() - previous_frame_time) / 1000.0;
+
     previous_frame_time = SDL_GetTicks();
 
-    // mesh.rotation.x += 0.05;
-    // mesh.rotation.y += 0.05;
-    // mesh.rotation.z += 0.05;
+    mesh.rotation.x += 0.05;
+    mesh.rotation.y += 0.05;
+    mesh.rotation.z += 0.05;
     // mesh.scale.x += 0.002;
     // mesh.scale.y += 0.001;
     // mesh.translation.x += 0.01;
     mesh.translation.z = 5.0;
 
     // Change the camera position per animation frame
-    camera.position.x += 0.008;
-    camera.position.y += 0.008;
+    // camera.position.x += 1 * delta_time;
 
     // Create the view matrix frame by frame looking at a hardcoded target point
     view_matrix = mat4_look_at(camera.position, camera_target, up_direction);

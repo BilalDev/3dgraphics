@@ -259,7 +259,10 @@ void update(void)
         polygon_t polygon = create_polygon_from_triangle(
             vec3_from_vec4(transformed_vertices[0]),
             vec3_from_vec4(transformed_vertices[1]),
-            vec3_from_vec4(transformed_vertices[2]));
+            vec3_from_vec4(transformed_vertices[2]),
+            face_mesh.a_uv,
+            face_mesh.b_uv,
+            face_mesh.c_uv);
 
         clip_polygon(&polygon);
         // Break the clipped polygon apart back into individual triangles
@@ -298,9 +301,9 @@ void update(void)
                     {projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w},
                 },
                 .texcoords = {
-                    {face_mesh.a_uv.u, face_mesh.a_uv.v},
-                    {face_mesh.b_uv.u, face_mesh.b_uv.v},
-                    {face_mesh.c_uv.u, face_mesh.c_uv.v},
+                    {triangle_after_clipping.texcoords[0].u, triangle_after_clipping.texcoords[0].v},
+                    {triangle_after_clipping.texcoords[1].u, triangle_after_clipping.texcoords[1].v},
+                    {triangle_after_clipping.texcoords[2].u, triangle_after_clipping.texcoords[2].v},
                 },
                 .color = new_color};
 

@@ -26,6 +26,7 @@ typedef struct
 } vec4_t;
 
 // V2 FUNCTIONS
+vec2_t new_vec2(float x, float y);
 float vec2_length(vec2_t v);
 vec2_t vec2_add(vec2_t a, vec2_t b);
 vec2_t vec2_sub(vec2_t a, vec2_t b);
@@ -36,6 +37,7 @@ float vec2_dot(vec2_t a, vec2_t b);
 void vec2_normalize(vec2_t *v);
 
 // V3 FUNCTIONS
+vec3_t new_vec3(float x, float y, float z);
 float vec3_length(vec3_t v);
 vec3_t vec3_add(vec3_t a, vec3_t b);
 vec3_t vec3_sub(vec3_t a, vec3_t b);
@@ -49,6 +51,7 @@ float vec3_dot(vec3_t a, vec3_t b);
 // ask yourself if you only need the direction of a vector
 // if so, then you should normalize
 void vec3_normalize(vec3_t *v);
+vec3_t vec3_clone(vec3_t *v);
 
 vec3_t vec3_rotate_x(vec3_t initial_position, float angle);
 vec3_t vec3_rotate_y(vec3_t initial_position, float angle);

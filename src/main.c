@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include "display.h"
+#include "clipping.h"
 #include "vector.h"
 #include "mesh.h"
 #include "triangle.h"
@@ -25,8 +26,6 @@ int num_triangles_to_render = 0;
 mat4_t projection_matrix;
 
 mat4_t view_matrix;
-vec3_t camera_target = {0, 0, 5.0};
-vec3_t up_direction = {0, 1, 0};
 
 light_t directional_light;
 
@@ -49,17 +48,23 @@ void setup(void)
                                              window_height);
 
     //  initialize the perspective projection matrix
-    float fov = M_PI / 3; // 180 / 3, 60deg
-    float aspect = (float)window_height / (float)window_width;
-    projection_matrix = mat4_make_perspective(fov, aspect, 0.1, 100.0);
+    float aspectx = (float)window_width / (float)window_height;
+    float aspecty = (float)window_height / (float)window_width;
+    float fovy = M_PI / 3.0; // 180 / 3, 60deg
+    float fovx = 2.0 * atan(tan(fovy / 2) * aspectx);
+    float znear = 1.0;
+    float zfar = 20.0;
+    projection_matrix = mat4_make_perspective(fovy, aspecty, znear, zfar);
+
+    initialize_frustrum_planes(fovx, fovy, znear, zfar);
 
     vec3_t direction = {0, 0, 1};
     directional_light.direction = direction;
 
     // Manually load the hardcoded texture data from the static array
 
-    load_obj_file_data("./assets/drone.obj");
-    load_png_texture_data("./assets/drone.png");
+    load_obj_file_data("./assets/cube.obj");
+    load_png_texture_data("./assets/cube.png");
     // load_cube_mesh_data();
 }
 
@@ -102,11 +107,40 @@ void process_input(void)
         }
         if (event.key.keysym.sym == SDLK_c)
         {
-            cull_method = CULL_BACKFACE;
+            if (cull_method == CULL_BACKFACE)
+            {
+                cull_method = CULL_NONE;
+            }
+            else
+            {
+                cull_method = CULL_BACKFACE;
+            }
+        }
+        if (event.key.keysym.sym == SDLK_UP)
+        {
+            camera.position.y += 3.0 * delta_time;
+        }
+        if (event.key.keysym.sym == SDLK_DOWN)
+        {
+            camera.position.y -= 3.0 * delta_time;
+        }
+        if (event.key.keysym.sym == SDLK_a)
+        {
+            camera.yaw_angle -= 1.0 * delta_time;
         }
         if (event.key.keysym.sym == SDLK_d)
         {
-            cull_method = CULL_NONE;
+            camera.yaw_angle += 1.0 * delta_time;
+        }
+        if (event.key.keysym.sym == SDLK_w)
+        {
+            camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+            camera.position = vec3_add(camera.position, camera.forward_velocity);
+        }
+        if (event.key.keysym.sym == SDLK_s)
+        {
+            camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+            camera.position = vec3_sub(camera.position, camera.forward_velocity);
         }
         break;
     }
@@ -128,9 +162,9 @@ void update(void)
 
     previous_frame_time = SDL_GetTicks();
 
-    mesh.rotation.x += 0.05;
-    mesh.rotation.y += 0.05;
-    mesh.rotation.z += 0.05;
+    // mesh.rotation.x += 0.05;
+    // mesh.rotation.y += 0.05;
+    // mesh.rotation.z += 0.05;
     // mesh.scale.x += 0.002;
     // mesh.scale.y += 0.001;
     // mesh.translation.x += 0.01;
@@ -139,7 +173,13 @@ void update(void)
     // Change the camera position per animation frame
     // camera.position.x += 1 * delta_time;
 
+    vec3_t camera_target = {0, 0, 1.0};
+    vec3_t up_direction = {0, 1, 0};
+
     // Create the view matrix frame by frame looking at a hardcoded target point
+    mat4_t camera_yaw_rotation = mat4_make_rotation_y(camera.yaw_angle);
+    camera.direction = vec3_from_vec4(mat4_mul_vec4(camera_yaw_rotation, vec4_from_vec3(camera_target)));
+    camera_target = vec3_add(camera.position, camera.direction);
     view_matrix = mat4_look_at(camera.position, camera_target, up_direction);
 
     mat4_t scale_matrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
@@ -215,40 +255,59 @@ void update(void)
             continue;
         }
 
-        vec4_t projected_points[3];
-        for (int j = 0; j < 3; j++)
+        // Create a polygon from the original transformed triangle to be clipped
+        polygon_t polygon = create_polygon_from_triangle(
+            vec3_from_vec4(transformed_vertices[0]),
+            vec3_from_vec4(transformed_vertices[1]),
+            vec3_from_vec4(transformed_vertices[2]));
+
+        clip_polygon(&polygon);
+        // Break the clipped polygon apart back into individual triangles
+        triangle_t triangles_after_clipping[MAX_NUM_POLY_TRIANGLES];
+        int num_triangles_after_clipping = 0;
+
+        triangles_from_polygon(&polygon, triangles_after_clipping, &num_triangles_after_clipping);
+
+        // Loops all the assembled triangles after clipping
+        for (int t = 0; t < num_triangles_after_clipping; t++)
         {
-            projected_points[j] = mat4_mul_vec4_project(projection_matrix, transformed_vertices[j]);
-            // scale into the view
-            projected_points[j].x *= (window_width / 2.0);
-            projected_points[j].y *= (window_height / 2.0);
+            triangle_t triangle_after_clipping = triangles_after_clipping[t];
+            vec4_t projected_points[3];
 
-            projected_points[j].y *= -1;
+            for (int j = 0; j < 3; j++)
+            {
+                projected_points[j] = mat4_mul_vec4_project(projection_matrix, triangle_after_clipping.points[j]);
+                // scale into the view
+                projected_points[j].x *= (window_width / 2.0);
+                projected_points[j].y *= (window_height / 2.0);
 
-            // translate the projected points to the middle of the screen
-            projected_points[j].x += (window_width / 2.0);
-            projected_points[j].y += (window_height / 2.0);
-        }
+                projected_points[j].y *= -1;
 
-        float percentage_exposition = -vec3_dot(normal, directional_light.direction);
-        uint32_t new_color = light_apply_intensity(face_mesh.color, percentage_exposition);
+                // translate the projected points to the middle of the screen
+                projected_points[j].x += (window_width / 2.0);
+                projected_points[j].y += (window_height / 2.0);
+            }
 
-        triangle_t projected_triangle = {
-            .points = {
-                {projected_points[0].x, projected_points[0].y, projected_points[0].z, projected_points[0].w},
-                {projected_points[1].x, projected_points[1].y, projected_points[1].z, projected_points[1].w},
-                {projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w},
-            },
-            .texcoords = {
-                {face_mesh.a_uv.u, face_mesh.a_uv.v},
-                {face_mesh.b_uv.u, face_mesh.b_uv.v},
-                {face_mesh.c_uv.u, face_mesh.c_uv.v},
-            },
-            .color = new_color};
+            float percentage_exposition = -vec3_dot(normal, directional_light.direction);
+            uint32_t new_color = light_apply_intensity(face_mesh.color, percentage_exposition);
 
-        if (num_triangles_to_render < MAX_TRIANGLES_PER_MESH)
-        {
-            triangles_to_render[num_triangles_to_render++] = projected_triangle;
+            triangle_t triangle_to_render = {
+                .points = {
+                    {projected_points[0].x, projected_points[0].y, projected_points[0].z, projected_points[0].w},
+                    {projected_points[1].x, projected_points[1].y, projected_points[1].z, projected_points[1].w},
+                    {projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w},
+                },
+                .texcoords = {
+                    {face_mesh.a_uv.u, face_mesh.a_uv.v},
+                    {face_mesh.b_uv.u, face_mesh.b_uv.v},
+                    {face_mesh.c_uv.u, face_mesh.c_uv.v},
+                },
+                .color = new_color};
+
+            if (num_triangles_to_render < MAX_TRIANGLES_PER_MESH)
+            {
+                triangles_to_render[num_triangles_to_render++] = triangle_to_render;
+            }
         }
     }
 }

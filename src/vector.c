@@ -2,6 +2,13 @@
 
 // V2
 
+vec2_t new_vec2(float x, float y)
+{
+    vec2_t result = {x, y};
+
+    return result;
+}
+
 float vec2_length(vec2_t v)
 {
     return sqrt((v.x * v.x) + (v.y * v.y));
@@ -57,6 +64,13 @@ void vec2_normalize(vec2_t *v)
 }
 
 // V3
+
+vec3_t new_vec3(float x, float y, float z)
+{
+    vec3_t result = {x, y, z};
+
+    return result;
+}
 
 float vec3_length(vec3_t v)
 {
@@ -176,4 +190,15 @@ vec2_t vec2_from_vec4(vec4_t v)
     vec2_t result = {v.x, v.y};
 
     return result;
+}
+
+vec3_t vec3_clone(vec3_t *v)
+{
+    vec3_t clone = {
+        .x = v->x,
+        .y = v->y,
+        .z = v->z,
+    };
+
+    return clone;
 }
